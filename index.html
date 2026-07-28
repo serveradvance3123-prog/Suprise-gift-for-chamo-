@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surprise Reveal 🎁</title>
+    <!-- Confetti Fireworks Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: #0f0f0f;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .page {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            animation: fade .6s;
+            position: relative;
+            z-index: 5;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .active {
+            display: flex;
+        }
+
+        @keyframes fade {
+            from { opacity: 0; transform: scale(.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(255, 77, 109, 0.5);
+        }
+
+        p {
+            font-size: 14px;
+            margin-bottom: 15px;
+            color: #ddd;
+        }
+
+        input {
+            padding: 12px 20px;
+            font-size: 16px;
+            border-radius: 25px;
+            border: 2px solid #ff4d6d;
+            background: #1a1a1a;
+            color: white;
+            text-align: center;
+            outline: none;
+            margin-bottom: 15px;
+            width: 80%;
+            box-shadow: 0 0 10px rgba(255, 77, 109, 0.2);
+        }
+
+        button {
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            margin: 10px;
+            cursor: pointer;
+            background: #ff4d6d;
+            color: white;
+            transition: .2s ease-in-out;
+            box-shadow: 0 5px 15px rgba(255,77,109,0.3);
+            z-index: 20;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        .gift-container {
+            width: 200px;
+            height: 200px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            z-index: 9999;
+            touch-action: manipulation;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 30px;
+            border: 2px dashed rgba(255, 77, 109, 0.4);
+            margin-bottom: 20px;
+        }
+
+        #gift {
+            font-size: 110px;
+            animation: bounce 1s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes bounce {
+            50% { transform: translateY(-15px); }
+        }
+
+        /* VOICE MIC STYLES */
+        .mic-btn {
+            font-size: 60px;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #ff4d6d;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 0 25px rgba(255, 77, 109, 0.6);
+            margin: 20px 0;
+            user-select: none;
+            transition: transform 0.2s;
+        }
+
+        .mic-btn.listening {
+            animation: pulse 1s infinite;
+            background: #00ff88;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.8);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .voice-status {
+            font-size: 15px;
+            color: #ff4d6d;
+            min-height: 24px;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+
+        /* Fixed No Button */
+        #no {
+            position: absolute;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            background: #444;
+            color: #aaa;
+            z-index: 99;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            touch-action: manipulation;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            width: 100%;
+            position: relative;
+            z-index: 20;
+            height: 120px;
+        }
+
+        .error-msg {
+            color: #ff4d4d;
+            font-size: 14px;
+            margin-top: -5px;
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        /* MEMORY GAME STYLES */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 70px);
+            gap: 10px;
+            margin-bottom: 15px;
+            justify-content: center;
+        }
+
+        .card {
+            width: 70px;
+            height: 70px;
+            background: #1a1a1a;
+            border: 2px solid #ff4d6d;
+            border-radius: 12px;
+            font-size: 28px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 0 10px rgba(255, 77, 109, 0.3);
+            transition: transform 0.2s, background-color 0.3s;
+        }
+
+        .card.matched {
+            border-color: #00ff88;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+            cursor: default;
+        }
+
+        .timer-box {
+            font-size: 13px;
+            color: #ff4d6d;
+            font-weight: bold;
+            margin-bottom: 10px;
+            background: #1a1a1a;
+            padding: 5px 15px;
+            border-radius: 20px;
+            border: 1px solid #ff4d6d;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Background Music Element -->
+    <audio id="bgMusic" src="song.mp3" preload="auto"></audio>
+
+    <!-- Page 1 (Tap to Open) -->
+    <div id="p1" class="page active">
+        <div class="gift-container" id="giftBox" onclick="openGift()">
+            <div id="gift">🎁</div>
+        </div>
+        <h1 style="color: #ff4d6d;">Tap the Gift Box! 👆</h1>
+    </div>
+
+    <!-- Page 2 (Security Check - Password) -->
+    <div id="p2" class="page">
+        <h1>Security Check 🔒</h1>
+        <p>Tu saccha dost hai toh bata... Jiban ka Birthday (DOB) kab hai?</p>
+        <input type="text" id="dobInput" placeholder="e.g. DDMMYYYY ya DD/MM/YYYY">
+        <div id="errMsg" class="error-msg">❌ Galat Password! Dost hone pe shakk hai mujhe 😂</div>
+        <button onclick="checkPassword()">Unlock Stage 1 🔓</button>
+    </div>
+
+    <!-- Page 3 (GAME: MEMORY CARD GAME) -->
+    <div id="p3" class="page">
+        <h1>Level 1: Memory Game 🧠</h1>
+        <p>Card khulte hi band ho jayega! Same pairs dhoond 🎯</p>
+        <div class="timer-box" id="timerText">⏳ Reshuffle in: 5s</div>
+        <div class="game-grid" id="gameGrid"></div>
+        <button id="nextMemoryGame" style="display:none;" onclick="next(4)">Go to Voice Lock 🎙️</button>
+    </div>
+
+    <!-- Page 4 (VOICE PASSWORD LOCK) -->
+    <div id="p4" class="page">
+        <h1>Voice Unlock Stage 🎙️</h1>
+        <p>Mic dabake zor se bol magic words: <br><b style="color: #ff4d6d; font-size: 18px;">"I love you"</b> ❤️</p>
+        
+        <div class="mic-btn" id="micBtn" onclick="startVoiceRecognition()">🎙️</div>
+        <div class="voice-status" id="voiceStatus">Mic button par click karke bolo...</div>
+
+        <button id="skipVoiceBtn" style="display:none; background:#333; font-size:12px;" onclick="next(5)">Skip Voice Test ➜</button>
+    </div>
+
+    <!-- Page 5 (Welcome Screen) -->
+    <div id="p5" class="page">
+        <h1>Welcome Sakcham 😎</h1>
+        <p>Identity & Voice Verified! Ready for the Questions?</p>
+        <button onclick="next(6)">Start Questions ➜</button>
+    </div>
+
+    <!-- Page 6 (Question Stage) -->
+    <div id="p6" class="page">
+        <h1 id="qTitle">Question 1 😂</h1>
+        <p id="qText">Will you continue?</p>
+        <div class="button-container">
+            <button id="yesBtn">Yes 😎</button>
+            <button id="no">No 😏</button>
+        </div>
+    </div>
+
+    <!-- Page 7 (FINAL REVEAL) -->
+    <div id="p7" class="page">
+        <div style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            background: #000;
+            color: white;
+            text-align: center;
+            animation: fade .6s;
+            padding: 20px;">
+            
+            <img src="photo.jpg" alt="Final Reveal" style="
+                max-width: 100%;
+                max-height: 80vh;
+                border-radius: 20px;
+                margin-top: 10px;
+                box-shadow: 0 0 30px hotpink;
+                border: 3px solid #ff4d6d;">
+                
+        </div>
+    </div>
+
+    <script>
+        const audio = document.getElementById("bgMusic");
+
+        function openGift() {
+            if (audio) {
+                audio.play().catch(e => console.log("Audio play skipped/failed:", e));
+            }
+            next(2);
+        }
+
+        function next(n) {
+            document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+            document.getElementById("p" + n).classList.add("active");
+
+            if (n === 3) {
+                initMemoryGame();
+            } else {
+                clearInterval(shuffleInterval);
+                clearInterval(countdownInterval);
+            }
+
+            if (n === 6) {
+                resetNoButtonPosition();
+            }
+
+            if (n === 7) {
+                triggerFireworks();
+            }
+        }
+
+        // PASSWORD CHECK LOGIC
+        const correctDOBs = ["29102008", "29/10/2008", "29-10-2008", "29 10 2008"];
+
+        function checkPassword() {
+            if (audio) audio.play().catch(e => {});
+            const userInput = document.getElementById("dobInput").value.trim();
+            const errMsg = document.getElementById("errMsg");
+
+            if(correctDOBs.includes(userInput)) {
+                errMsg.style.display = "none";
+                next(3);
+            } else {
+                errMsg.style.display = "block";
+                document.getElementById("dobInput").value = "";
+            }
+        }
+
+        // --- GAME: MEMORY CARD GAME LOGIC ---
+        let cardsData = [
+            { id: 1, icon: '👑', matched: false }, { id: 2, icon: '👑', matched: false },
+            { id: 3, icon: '🔥', matched: false }, { id: 4, icon: '🔥', matched: false },
+            { id: 5, icon: '⚡', matched: false }, { id: 6, icon: '⚡', matched: false },
+            { id: 7, icon: '🍕', matched: false }, { id: 8, icon: '🍕', matched: false }
+        ];
+
+        let flipped = [];
+        let shuffleInterval;
+        let countdownInterval;
+        let timeLeft = 5;
+        let isChecking = false;
+
+        function initMemoryGame() {
+            cardsData.forEach(c => c.matched = false);
+            flipped = [];
+            isChecking = false;
+            document.getElementById("nextMemoryGame").style.display = "none";
+            cardsData.sort(() => Math.random() - 0.5);
+            renderGrid();
+            startShuffleTimer();
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById("gameGrid");
+            grid.innerHTML = "";
+
+            cardsData.forEach((item, index) => {
+                const card = document.createElement("div");
+                card.className = "card" + (item.matched ? " matched" : "");
+                
+                if(item.matched) {
+                    card.innerHTML = item.icon;
+                } else {
+                    const isFlipped = flipped.some(f => f.index === index);
+                    card.innerHTML = isFlipped ? item.icon : "❓";
+                }
+
+                card.onclick = () => flipCard(index, item);
+                grid.appendChild(card);
+            });
+        }
+
+        function shuffleUnmatched() {
+            if(cardsData.every(c => c.matched) || isChecking) return;
+            flipped = [];
+            let unmatched = cardsData.filter(c => !c.matched);
+            unmatched.sort(() => Math.random() - 0.5);
+
+            let unmatchedIndex = 0;
+            cardsData = cardsData.map(c => c.matched ? c : unmatched[unmatchedIndex++]);
+            renderGrid();
+        }
+
+        function startShuffleTimer() {
+            clearInterval(shuffleInterval);
+            clearInterval(countdownInterval);
+            timeLeft = 5;
+
+            countdownInterval = setInterval(() => {
+                timeLeft--;
+                if(timeLeft <= 0) timeLeft = 5;
+                document.getElementById("timerText").innerHTML = `⏳ Reshuffle in: ${timeLeft}s`;
+            }, 1000);
+
+            shuffleInterval = setInterval(() => {
+                shuffleUnmatched();
+            }, 5000);
+        }
+
+        function flipCard(index, item) {
+            if(item.matched || isChecking || flipped.length >= 2 || flipped.some(f => f.index === index)) return;
+
+            flipped.push({ index, item });
+            renderGrid();
+
+            if(flipped.length === 2) {
+                isChecking = true;
+                if(flipped[0].item.icon === flipped[1].item.icon) {
+                    flipped[0].item.matched = true;
+                    flipped[1].item.matched = true;
+                    flipped = [];
+                    isChecking = false;
+                    renderGrid();
+
+                    if(cardsData.every(c => c.matched)) {
+                        clearInterval(shuffleInterval);
+                        clearInterval(countdownInterval);
+                        document.getElementById("timerText").innerHTML = "🎉 LEVEL 1 CLEARED!";
+                        document.getElementById("nextMemoryGame").style.display = "block";
+                    }
+                } else {
+                    setTimeout(() => {
+                        flipped = [];
+                        isChecking = false;
+                        renderGrid();
+                    }, 800);
+                }
+            }
+        }
+
+        // --- VOICE RECOGNITION LOGIC ---
+        function startVoiceRecognition() {
+            const micBtn = document.getElementById("micBtn");
+            const status = document.getElementById("voiceStatus");
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+            if (!SpeechRecognition) {
+                status.style.color = "#ff4d4d";
+                status.innerHTML = "❌ Browser Speech Support nahi karta! Direct 'Skip' daba de.";
+                document.getElementById("skipVoiceBtn").style.display = "inline-block";
+                return;
+            }
+
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+
+            recognition.onstart = function() {
+                micBtn.classList.add("listening");
+                status.style.color = "#00ff88";
+                status.innerHTML = "🎧 Sun raha hoon... bolo 'I love you'!";
+            };
+
+            recognition.onspeechend = function() {
+                micBtn.classList.remove("listening");
+                recognition.stop();
+            };
+
+            recognition.onresult = function(event) {
+                micBtn.classList.remove("listening");
+                const transcript = event.results[0][0].transcript.toLowerCase();
+                status.innerHTML = `Bola: "${transcript}"`;
+
+                if (transcript.includes("love") || transcript.includes("i love you")) {
+                    status.style.color = "#00ff88";
+                    status.innerHTML = "❤️ Voice Match Completed! Unlocking...";
+                    setTimeout(() => {
+                        next(5);
+                    }, 1000);
+                } else {
+                    status.style.color = "#ff4d4d";
+                    status.innerHTML = "❌ Galat bola! Sacche dil se bolo 'I love you' 😉";
+                }
+            };
+
+            recognition.onerror = function(event) {
+                micBtn.classList.remove("listening");
+                status.style.color = "#ff4d4d";
+                status.innerHTML = "⚠️ Mic permission do ya dobara try karo!";
+                document.getElementById("skipVoiceBtn").style.display = "inline-block";
+            };
+
+            recognition.start();
+        }
+
+        // QUESTIONS LOGIC
+        const questions = [
+            "😂 Kya tu officially mera Best Friend hai?",
+            "🍕 Kya tu mujhe lifetime treat dega?",
+            "💰 Kya tu mujhe ₹1 Crore udhaar dega?",
+            "🏍️ Kya apni bike mujhe dega?",
+            "🤝 Kya meri bakwaas hamesha sunega?",
+            "👶 Kya mere bachchon ka favourite chacha banega?",
+            "❤️ Kya Jiban ❤️ Sakcham forever?"
+        ];
+
+        let current = 0;
+        const yesBtn = document.getElementById("yesBtn");
+        const qTitle = document.getElementById("qTitle");
+        const qText = document.getElementById("qText");
+        const noBtn = document.getElementById("no");
+
+        yesBtn.onclick = function() {
+            current++;
+
+            if(current >= questions.length) {
+                qTitle.innerHTML = "🎉 Congratulations";
+                qText.innerHTML = "Bas ek last surprise baaki hai 😎";
+                this.innerHTML = "Open Gift 🎁";
+                noBtn.style.display = "none";
+
+                this.onclick = function() {
+                    next(7);
+                }
+                return;
+            }
+
+            qTitle.innerHTML = "Question " + (current + 1) + " 😂";
+            qText.innerHTML = questions[current];
+            resetNoButtonPosition();
+        }
+
+        function resetNoButtonPosition() {
+            noBtn.style.position = "relative";
+            noBtn.style.left = "0px";
+            noBtn.style.top = "0px";
+        }
+
+        // ULTRA RANDOM "NO" BUTTON TELEPORT LOGIC
+        function moveNoButton(e) {
+            if(e) e.preventDefault();
+            
+            const padding = 20;
+            const maxX = window.innerWidth - noBtn.clientWidth - padding;
+            const maxY = window.innerHeight - noBtn.clientHeight - padding;
+            
+            const randomX = Math.max(padding, Math.floor(Math.random() * maxX));
+            const randomY = Math.max(padding, Math.floor(Math.random() * maxY));
+
+            noBtn.style.position = "fixed";
+            noBtn.style.left = randomX + "px";
+            noBtn.style.top = randomY + "px";
+        }
+
+        noBtn.addEventListener("mouseover", moveNoButton);
+        noBtn.addEventListener("touchstart", moveNoButton);
+        noBtn.addEventListener("click", moveNoButton);
+
+        // UNLIMITED FIREWORKS ANIMATION FUNCTION
+        function triggerFireworks() {
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 999 };
+
+            function randomInRange(min, max) {
+              return Math.random() * (max - min) + min;
+            }
+
+            setInterval(function() {
+              confetti(Object.assign({}, defaults, { particleCount: 30, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+              confetti(Object.assign({}, defaults, { particleCount: 30, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 350);
+        }
+    </script>
+</body>
+</html>
+  
